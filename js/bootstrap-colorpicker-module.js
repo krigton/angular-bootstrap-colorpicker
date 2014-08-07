@@ -501,6 +501,41 @@ angular.module('colorpicker.module', [])
           colorpickerTemplate.find('button').on('click', function () {
             hideColorpickerTemplate();
           });
+
+          //luminance validator
+          var getLuminance = function(rgb){
+            var i, lum = 0, c, L_CONST = [0.299, 0.587, 0.114];
+
+            rgb = String(rgb).replace(/[^0-9a-f]/gi, '');
+
+            if(rgb.length == 6) {
+              for( i = 0; i < 3; i ++) {
+                c = parseInt(rgb.substr(i*2,2), 16);
+
+                lum += L_CONST[i] * c;
+              }
+            }
+
+            return lum;
+          };
+
+          ngModel.$parsers.unshift(validateLuminance);
+
+          //validate for ranges like "cccccc-"
+          function validateLuminance (luminance) {
+            if (!validLuminance && attrs.colorpickerMaxLuminance) {
+              validLuminance = getLuminance(attrs.colorpickerMaxLuminance);
+            }
+
+            if(validLuminance && validLuminance < getLuminance(luminance)) {
+              ngModel.$setValidity("colorpicker-max-luminance",false);
+            }
+            else {
+              ngModel.$setValidity("colorpicker-max-luminance", true);
+            }
+
+            return luminance;
+          }
         }
       };
     }]);
